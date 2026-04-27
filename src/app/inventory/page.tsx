@@ -1,9 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import MainLayout from "@/components/layout/MainLayout";
 import InventoryTable from "@/components/inventory/InventoryTable";
 import InventoryForm from "@/components/inventory/InventoryForm";
+import SalesForm from "@/components/sales/SalesForm";
 import { Product } from "@/types/inventory";
 import { formatCurrency } from "@/lib/utils";
 import {
@@ -13,14 +15,19 @@ import {
   TrendingUp,
   RefreshCw,
   Search,
+  Smartphone,
 } from "lucide-react";
 
-export default function InventoryPage() {
+function InventoryContent() {
+  const searchParams = useSearchParams();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editProduct, setEditProduct] = useState<Product | undefined>(undefined);
-  const [search, setSearch] = useState("");
+  const [sellProduct, setSellProduct] = useState<Product | undefined>(undefined);
+  const [showSaleForm, setShowSaleForm] = useState(false);
+  // ✅ Fix: initial value seedha searchParams se lo, second useEffect ki zaroorat nahi
+  const [search, setSearch] = useState(() => searchParams.get("search") || "");
   const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
@@ -45,6 +52,8 @@ export default function InventoryPage() {
     };
   }, [refreshKey]);
 
+  // ✅ Removed: second useEffect jo searchParams pe setState karta tha
+
   const handleRefresh = () => setRefreshKey((prev) => prev + 1);
 
   const handleEdit = (product: Product) => {
@@ -57,10 +66,23 @@ export default function InventoryPage() {
     setEditProduct(undefined);
   };
 
+  const handleSell = (product: Product) => {
+    setSellProduct(product);
+    setShowSaleForm(true);
+  };
+
+  const handleCloseSaleForm = () => {
+    setShowSaleForm(false);
+    setSellProduct(undefined);
+  };
+
   const filteredProducts = products.filter(
     (p) =>
       p.name.toLowerCase().includes(search.toLowerCase()) ||
-      p.category.toLowerCase().includes(search.toLowerCase())
+      p.category.toLowerCase().includes(search.toLowerCase()) ||
+      p.modelName?.toLowerCase().includes(search.toLowerCase()) ||
+      p.imei1?.toLowerCase().includes(search.toLowerCase()) ||
+      p.imei2?.toLowerCase().includes(search.toLowerCase())
   );
 
   const totalProducts = products.length;
@@ -77,30 +99,30 @@ export default function InventoryPage() {
     {
       label: "Total Products",
       value: totalProducts,
-      icon: Package,
-      lightColor: "bg-blue-50 dark:bg-blue-900/20",
-      textColor: "text-blue-600 dark:text-blue-400",
+      icon: Smartphone,
+      lightColor: "bg-indigo-50",
+      textColor: "text-indigo-600",
     },
     {
       label: "Low Stock",
       value: lowStockProducts,
       icon: AlertTriangle,
-      lightColor: "bg-yellow-50 dark:bg-yellow-900/20",
-      textColor: "text-yellow-600 dark:text-yellow-400",
+      lightColor: "bg-yellow-50",
+      textColor: "text-yellow-600",
     },
     {
       label: "Out of Stock",
       value: outOfStock,
-      icon: AlertTriangle,
-      lightColor: "bg-red-50 dark:bg-red-900/20",
-      textColor: "text-red-600 dark:text-red-400",
+      icon: Package,
+      lightColor: "bg-red-50",
+      textColor: "text-red-600",
     },
     {
       label: "Inventory Value",
       value: formatCurrency(totalValue),
       icon: TrendingUp,
-      lightColor: "bg-green-50 dark:bg-green-900/20",
-      textColor: "text-green-600 dark:text-green-400",
+      lightColor: "bg-green-50",
+      textColor: "text-green-600",
     },
   ];
 
@@ -110,23 +132,21 @@ export default function InventoryPage() {
         {/* Top Bar */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-slate-800 dark:text-white">
-              Inventory
-            </h1>
+            <h1 className="text-2xl font-bold text-slate-800">Inventory</h1>
             <p className="text-sm text-slate-400 mt-0.5">
-              Manage your products and stock levels
+              Manage your products, stock levels and IMEI numbers
             </p>
           </div>
           <div className="flex items-center gap-3">
             <button
               onClick={handleRefresh}
-              className="w-9 h-9 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+              className="w-9 h-9 rounded-xl bg-white border border-indigo-100 flex items-center justify-center hover:bg-indigo-50 transition-colors shadow-sm"
             >
-              <RefreshCw className="w-4 h-4 text-slate-500" />
+              <RefreshCw className="w-4 h-4 text-indigo-500" />
             </button>
             <button
               onClick={() => setShowForm(true)}
-              className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors shadow-lg shadow-blue-500/25"
+              className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-xl transition-colors shadow-md shadow-indigo-200"
             >
               <Plus className="w-4 h-4" />
               Add Product
@@ -141,19 +161,15 @@ export default function InventoryPage() {
             return (
               <div
                 key={stat.label}
-                className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-5"
+                className="bg-white rounded-2xl border border-indigo-100 p-5 shadow-sm"
               >
                 <div className="flex items-center justify-between mb-3">
-                  <p className="text-sm text-slate-500 dark:text-slate-400">
-                    {stat.label}
-                  </p>
-                  <div className={`w-9 h-9 ${stat.lightColor} rounded-lg flex items-center justify-center`}>
+                  <p className="text-sm text-slate-500">{stat.label}</p>
+                  <div className={`w-9 h-9 ${stat.lightColor} rounded-xl flex items-center justify-center`}>
                     <Icon className={`w-5 h-5 ${stat.textColor}`} />
                   </div>
                 </div>
-                <p className="text-2xl font-bold text-slate-800 dark:text-white">
-                  {stat.value}
-                </p>
+                <p className="text-2xl font-bold text-slate-800">{stat.value}</p>
               </div>
             );
           })}
@@ -161,20 +177,20 @@ export default function InventoryPage() {
 
         {/* Search */}
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-indigo-400" />
           <input
             type="text"
-            placeholder="Search products..."
+            placeholder="Search by name, model, category or IMEI..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-9 pr-4 py-2.5 text-sm bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 text-slate-700 dark:text-white"
+            className="w-full pl-9 pr-4 py-2.5 text-sm bg-white border border-indigo-100 rounded-xl outline-none focus:ring-2 focus:ring-indigo-400 text-slate-700 shadow-sm"
           />
         </div>
 
         {/* Table */}
         {loading ? (
-          <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-12 text-center">
-            <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+          <div className="bg-white rounded-2xl border border-indigo-100 p-12 text-center shadow-sm">
+            <div className="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
             <p className="text-sm text-slate-400">Loading products...</p>
           </div>
         ) : (
@@ -182,11 +198,12 @@ export default function InventoryPage() {
             products={filteredProducts}
             onRefresh={handleRefresh}
             onEdit={handleEdit}
+            onSell={handleSell}
           />
         )}
       </div>
 
-      {/* Form Modal */}
+      {/* Inventory Form Modal */}
       {showForm && (
         <InventoryForm
           onClose={handleCloseForm}
@@ -194,6 +211,30 @@ export default function InventoryPage() {
           editProduct={editProduct}
         />
       )}
+
+      {/* Sale Form Modal */}
+      {showSaleForm && sellProduct && (
+        <SalesForm
+          onClose={handleCloseSaleForm}
+          onSuccess={() => {
+            handleRefresh();
+            handleCloseSaleForm();
+          }}
+          preSelectedProduct={sellProduct}
+        />
+      )}
     </MainLayout>
+  );
+}
+
+export default function InventoryPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center h-screen">
+        <div className="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+      </div>
+    }>
+      <InventoryContent />
+    </Suspense>
   );
 }

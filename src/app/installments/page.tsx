@@ -2,44 +2,42 @@
 
 import { useState, useEffect } from "react";
 import MainLayout from "@/components/layout/MainLayout";
-import SalesTable from "@/components/sales/SalesTable";
-import SalesForm from "@/components/sales/SalesForm";
-import { Sale } from "@/types/sales";
+import InstallmentTable from "@/components/installments/InstallmentTable";
+import InstallmentForm from "@/components/installments/InstallmentForm";
+import { Installment } from "@/types/installment";
 import { formatCurrency } from "@/lib/utils";
 import {
   Plus,
-  ShoppingCart,
-  TrendingUp,
-  DollarSign,
+  CreditCard,
+  CheckCircle,
+  Clock,
+  AlertCircle,
   RefreshCw,
-  BarChart3,
-  Search,
 } from "lucide-react";
 
-export default function SalesPage() {
-  const [sales, setSales] = useState<Sale[]>([]);
+export default function InstallmentsPage() {
+  const [installments, setInstallments] = useState<Installment[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
-  const [search, setSearch] = useState("");
   const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
 
-    async function loadSales() {
+    async function loadInstallments() {
       setLoading(true);
       try {
-        const res = await fetch("/api/sales");
+        const res = await fetch("/api/installments");
         const data = await res.json();
-        if (!cancelled) setSales(data);
+        if (!cancelled) setInstallments(data);
       } catch (error) {
-        console.error("Error fetching sales:", error);
+        console.error("Error fetching installments:", error);
       } finally {
         if (!cancelled) setLoading(false);
       }
     }
 
-    loadSales();
+    loadInstallments();
     return () => {
       cancelled = true;
     };
@@ -47,60 +45,60 @@ export default function SalesPage() {
 
   const handleRefresh = () => setRefreshKey((prev) => prev + 1);
 
-  const filteredSales = sales.filter(
-    (s) =>
-      s.productName.toLowerCase().includes(search.toLowerCase()) ||
-      s.invoiceNo.toLowerCase().includes(search.toLowerCase())
+  const totalInstallments = installments.length;
+  const activeInstallments = installments.filter(
+    (i) => i.status === "ACTIVE"
+  ).length;
+  const completedInstallments = installments.filter(
+    (i) => i.status === "COMPLETED"
+  ).length;
+  const totalRemaining = installments.reduce(
+    (sum, i) => sum + i.remainingAmount,
+    0
   );
-
-  const totalSales = sales.length;
-  const totalRevenue = sales.reduce((sum, s) => sum + s.totalAmount, 0);
-  const totalProfit = sales.reduce((sum, s) => sum + s.profit, 0);
-  const todaySales = sales.filter((s) => {
-    const today = new Date().toDateString();
-    return new Date(s.createdAt).toDateString() === today;
-  }).length;
 
   const stats = [
     {
-      label: "Total Sales",
-      value: totalSales,
-      icon: ShoppingCart,
+      label: "Total Installments",
+      value: totalInstallments,
+      icon: CreditCard,
       lightColor: "bg-indigo-50",
       textColor: "text-indigo-600",
     },
     {
-      label: "Today Sales",
-      value: todaySales,
-      icon: BarChart3,
-      lightColor: "bg-purple-50",
-      textColor: "text-purple-600",
+      label: "Active",
+      value: activeInstallments,
+      icon: Clock,
+      lightColor: "bg-orange-50",
+      textColor: "text-orange-600",
     },
     {
-      label: "Total Revenue",
-      value: formatCurrency(totalRevenue),
-      icon: DollarSign,
+      label: "Completed",
+      value: completedInstallments,
+      icon: CheckCircle,
       lightColor: "bg-green-50",
       textColor: "text-green-600",
     },
     {
-      label: "Total Profit",
-      value: formatCurrency(totalProfit),
-      icon: TrendingUp,
-      lightColor: "bg-orange-50",
-      textColor: "text-orange-600",
+      label: "Total Remaining",
+      value: formatCurrency(totalRemaining),
+      icon: AlertCircle,
+      lightColor: "bg-red-50",
+      textColor: "text-red-600",
     },
   ];
 
   return (
-    <MainLayout title="Sales">
+    <MainLayout title="Installments">
       <div className="space-y-6">
         {/* Top Bar */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-slate-800">Sales</h1>
+            <h1 className="text-2xl font-bold text-slate-800">
+              Installments
+            </h1>
             <p className="text-sm text-slate-400 mt-0.5">
-              Track your daily sales and revenue
+              Manage customer installment plans
             </p>
           </div>
           <div className="flex items-center gap-3">
@@ -115,7 +113,7 @@ export default function SalesPage() {
               className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-xl transition-colors shadow-md shadow-indigo-200"
             >
               <Plus className="w-4 h-4" />
-              New Sale
+              New Installment
             </button>
           </div>
         </div>
@@ -143,32 +141,23 @@ export default function SalesPage() {
           })}
         </div>
 
-        {/* Search */}
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-indigo-400" />
-          <input
-            type="text"
-            placeholder="Search by product name or invoice number..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-9 pr-4 py-2.5 text-sm bg-white border border-indigo-100 rounded-xl outline-none focus:ring-2 focus:ring-indigo-400 text-slate-700 shadow-sm"
-          />
-        </div>
-
         {/* Table */}
         {loading ? (
           <div className="bg-white rounded-2xl border border-indigo-100 p-12 text-center shadow-sm">
             <div className="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-            <p className="text-sm text-slate-400">Loading sales...</p>
+            <p className="text-sm text-slate-400">Loading installments...</p>
           </div>
         ) : (
-          <SalesTable sales={filteredSales} onRefresh={handleRefresh} />
+          <InstallmentTable
+            installments={installments}
+            onRefresh={handleRefresh}
+          />
         )}
       </div>
 
       {/* Form Modal */}
       {showForm && (
-        <SalesForm
+        <InstallmentForm
           onClose={() => setShowForm(false)}
           onSuccess={handleRefresh}
         />

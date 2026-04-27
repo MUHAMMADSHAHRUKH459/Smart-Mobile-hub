@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { X, Package } from "lucide-react";
+import { X, Package, Plus, Trash2 } from "lucide-react";
 import { CreateProductInput, Product } from "@/types/inventory";
 
 interface InventoryFormProps {
@@ -11,11 +11,10 @@ interface InventoryFormProps {
 }
 
 const categories = [
-  "Mobile Accessories",
-  "Spare Parts",
-  "Electronics",
-  "Tools",
-  "Other",
+  "Smartphones",
+  "Tablets",
+  "Keypad",
+  "Accessories",
 ];
 
 export default function InventoryForm({
@@ -24,13 +23,17 @@ export default function InventoryForm({
   editProduct,
 }: InventoryFormProps) {
   const [loading, setLoading] = useState(false);
+  const [showImei2, setShowImei2] = useState(!!editProduct?.imei2);
   const [form, setForm] = useState<CreateProductInput>({
     name: editProduct?.name || "",
+    modelName: editProduct?.modelName || "",
     category: editProduct?.category || "",
     quantity: editProduct?.quantity || 0,
     costPrice: editProduct?.costPrice || 0,
     sellingPrice: editProduct?.sellingPrice || 0,
     lowStockAlert: editProduct?.lowStockAlert || 5,
+    imei1: editProduct?.imei1 || "",
+    imei2: editProduct?.imei2 || "",
   });
 
   const profit = form.sellingPrice - form.costPrice;
@@ -59,10 +62,15 @@ export default function InventoryForm({
         : "/api/inventory";
       const method = editProduct ? "PATCH" : "POST";
 
+      const submitData = {
+        ...form,
+        imei2: showImei2 ? form.imei2 : "",
+      };
+
       const res = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify(submitData),
       });
 
       if (res.ok) {
@@ -77,16 +85,16 @@ export default function InventoryForm({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl shadow-2xl shadow-indigo-100 w-full max-w-lg max-h-[90vh] overflow-y-auto border border-indigo-100">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-slate-200 dark:border-slate-700">
+        <div className="flex items-center justify-between p-6 border-b border-indigo-100">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center">
-              <Package className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+            <div className="w-9 h-9 bg-indigo-100 rounded-xl flex items-center justify-center">
+              <Package className="w-5 h-5 text-indigo-600" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-slate-800 dark:text-white">
+              <h2 className="text-lg font-semibold text-slate-800">
                 {editProduct ? "Edit Product" : "Add New Product"}
               </h2>
               <p className="text-xs text-slate-400">Fill in product details</p>
@@ -95,33 +103,49 @@ export default function InventoryForm({
           <button
             type="button"
             onClick={onClose}
-            className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-700 flex items-center justify-center hover:bg-slate-200 transition-colors"
+            className="w-8 h-8 rounded-xl bg-indigo-50 flex items-center justify-center hover:bg-indigo-100 transition-colors"
           >
-            <X className="w-4 h-4 text-slate-500" />
+            <X className="w-4 h-4 text-indigo-500" />
           </button>
         </div>
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          {/* Name */}
-          <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-              Product Name
-            </label>
-            <input
-              type="text"
-              name="name"
-              value={form.name}
-              onChange={handleInputChange}
-              required
-              placeholder="iPhone 13 Screen"
-              className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-800 dark:text-white text-sm outline-none focus:ring-2 focus:ring-blue-500"
-            />
+
+          {/* Product Name & Model Name */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">
+                Product Name
+              </label>
+              <input
+                type="text"
+                name="name"
+                value={form.name}
+                onChange={handleInputChange}
+                required
+                placeholder="iPhone"
+                className="w-full px-3 py-2 rounded-xl border border-indigo-100 bg-indigo-50 text-slate-800 text-sm outline-none focus:ring-2 focus:ring-indigo-400"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">
+                Model Name
+              </label>
+              <input
+                type="text"
+                name="modelName"
+                value={form.modelName}
+                onChange={handleInputChange}
+                placeholder="15 Pro Max"
+                className="w-full px-3 py-2 rounded-xl border border-indigo-100 bg-indigo-50 text-slate-800 text-sm outline-none focus:ring-2 focus:ring-indigo-400"
+              />
+            </div>
           </div>
 
           {/* Category */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+            <label className="block text-sm font-medium text-slate-700 mb-1">
               Category
             </label>
             <select
@@ -129,7 +153,7 @@ export default function InventoryForm({
               value={form.category}
               onChange={handleSelectChange}
               required
-              className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-800 dark:text-white text-sm outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 rounded-xl border border-indigo-100 bg-indigo-50 text-slate-800 text-sm outline-none focus:ring-2 focus:ring-indigo-400"
             >
               <option value="">Select...</option>
               {categories.map((c) => (
@@ -138,10 +162,66 @@ export default function InventoryForm({
             </select>
           </div>
 
+          {/* IMEI 1 */}
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">
+              IMEI 1
+            </label>
+            <input
+              type="text"
+              name="imei1"
+              value={form.imei1}
+              onChange={handleInputChange}
+              placeholder="350000000000000"
+              maxLength={15}
+              className="w-full px-3 py-2 rounded-xl border border-indigo-100 bg-indigo-50 text-slate-800 text-sm outline-none focus:ring-2 focus:ring-indigo-400"
+            />
+          </div>
+
+          {/* IMEI 2 */}
+          {showImei2 ? (
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-sm font-medium text-slate-700">
+                  IMEI 2
+                </label>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowImei2(false);
+                    setForm((prev) => ({ ...prev, imei2: "" }));
+                  }}
+                  className="flex items-center gap-1 text-xs text-red-400 hover:text-red-500"
+                >
+                  <Trash2 className="w-3 h-3" />
+                  Remove
+                </button>
+              </div>
+              <input
+                type="text"
+                name="imei2"
+                value={form.imei2}
+                onChange={handleInputChange}
+                placeholder="350000000000001"
+                maxLength={15}
+                className="w-full px-3 py-2 rounded-xl border border-indigo-100 bg-indigo-50 text-slate-800 text-sm outline-none focus:ring-2 focus:ring-indigo-400"
+              />
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setShowImei2(true)}
+              className="flex items-center gap-2 text-sm text-indigo-600 hover:text-indigo-700 font-medium"
+            >
+              <Plus className="w-4 h-4" />
+              Add Another IMEI
+            </button>
+          )}
+
           {/* Quantity & Low Stock */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+              <label className="block text-sm font-medium text-slate-700 mb-1">
                 Quantity
               </label>
               <input
@@ -151,11 +231,11 @@ export default function InventoryForm({
                 onChange={handleInputChange}
                 required
                 min="0"
-                className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-800 dark:text-white text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 rounded-xl border border-indigo-100 bg-indigo-50 text-slate-800 text-sm outline-none focus:ring-2 focus:ring-indigo-400"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+              <label className="block text-sm font-medium text-slate-700 mb-1">
                 Low Stock Alert
               </label>
               <input
@@ -165,7 +245,7 @@ export default function InventoryForm({
                 onChange={handleInputChange}
                 required
                 min="1"
-                className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-800 dark:text-white text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 rounded-xl border border-indigo-100 bg-indigo-50 text-slate-800 text-sm outline-none focus:ring-2 focus:ring-indigo-400"
               />
             </div>
           </div>
@@ -173,7 +253,7 @@ export default function InventoryForm({
           {/* Cost & Selling Price */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+              <label className="block text-sm font-medium text-slate-700 mb-1">
                 Cost Price (PKR)
               </label>
               <input
@@ -183,11 +263,11 @@ export default function InventoryForm({
                 onChange={handleInputChange}
                 required
                 min="0"
-                className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-800 dark:text-white text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 rounded-xl border border-indigo-100 bg-indigo-50 text-slate-800 text-sm outline-none focus:ring-2 focus:ring-indigo-400"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+              <label className="block text-sm font-medium text-slate-700 mb-1">
                 Selling Price (PKR)
               </label>
               <input
@@ -197,24 +277,22 @@ export default function InventoryForm({
                 onChange={handleInputChange}
                 required
                 min="0"
-                className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-800 dark:text-white text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 rounded-xl border border-indigo-100 bg-indigo-50 text-slate-800 text-sm outline-none focus:ring-2 focus:ring-indigo-400"
               />
             </div>
           </div>
 
           {/* Profit Preview */}
-          <div className={`rounded-lg px-4 py-3 flex items-center justify-between ${
+          <div className={`rounded-xl px-4 py-3 flex items-center justify-between border ${
             profit >= 0
-              ? "bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800"
-              : "bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800"
+              ? "bg-green-50 border-green-200"
+              : "bg-red-50 border-red-200"
           }`}>
-            <span className="text-sm font-medium text-slate-600 dark:text-slate-300">
+            <span className="text-sm font-medium text-slate-600">
               Profit per unit
             </span>
             <span className={`text-lg font-bold ${
-              profit >= 0
-                ? "text-green-600 dark:text-green-400"
-                : "text-red-600 dark:text-red-400"
+              profit >= 0 ? "text-green-600" : "text-red-600"
             }`}>
               PKR {profit.toLocaleString()}
             </span>
@@ -225,14 +303,14 @@ export default function InventoryForm({
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-4 py-2.5 rounded-lg border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+              className="flex-1 px-4 py-2.5 rounded-xl border border-indigo-200 text-slate-600 text-sm font-medium hover:bg-indigo-50 transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="flex-1 px-4 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium transition-colors disabled:opacity-50"
+              className="flex-1 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium transition-colors shadow-md shadow-indigo-200 disabled:opacity-50"
             >
               {loading ? "Saving..." : editProduct ? "Update Product" : "Add Product"}
             </button>

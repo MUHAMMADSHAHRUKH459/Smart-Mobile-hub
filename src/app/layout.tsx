@@ -5,7 +5,7 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Pak Repair System",
+  title: "Smart Mobile hub",
   description: "Inventory & Repair Management System",
 };
 

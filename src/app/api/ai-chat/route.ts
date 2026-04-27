@@ -84,7 +84,7 @@ ${(repairs as Repair[]).slice(0, 5).map((r) => `- ${r.customerName}: ${r.deviceT
         "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
         "Content-Type": "application/json",
         "HTTP-Referer": "https://pak-repair-management-system.vercel.app",
-        "X-Title": "Pak Repair System",
+        "X-Title": "Smart Mobile hub",
       },
       body: JSON.stringify({
         model: "meta-llama/llama-3.3-70b-instruct:free",

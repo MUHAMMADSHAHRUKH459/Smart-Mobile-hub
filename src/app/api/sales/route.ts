@@ -26,7 +26,7 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { productName, quantity, unitPrice, costPrice } = body;
+    const { productName, quantity, unitPrice, costPrice, linkedProductId } = body;
 
     const totalAmount = unitPrice * quantity;
     const profit = (unitPrice - costPrice) * quantity;
@@ -42,6 +42,21 @@ export async function POST(req: NextRequest) {
         profit,
       },
     });
+
+    if (linkedProductId) {
+      const product = await prisma.product.findUnique({
+        where: { id: linkedProductId },
+      });
+
+      if (product) {
+        await prisma.product.update({
+          where: { id: linkedProductId },
+          data: {
+            quantity: Math.max(0, product.quantity - parseInt(quantity)),
+          },
+        });
+      }
+    }
 
     return NextResponse.json(sale, { status: 201 });
   } catch (error) {

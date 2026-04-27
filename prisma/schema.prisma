@@ -18,11 +18,14 @@ model User {
 model Product {
   id            String   @id @default(cuid())
   name          String
+  modelName     String   @default("")
   category      String
   quantity      Int      @default(0)
   costPrice     Float
   sellingPrice  Float
   lowStockAlert Int      @default(5)
+  imei1         String?
+  imei2         String?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 }
@@ -39,23 +42,33 @@ model Sale {
   createdAt   DateTime @default(now())
 }
 
-model Repair {
-  id             String       @id @default(cuid())
+model Installment {
+  id             String              @id @default(cuid())
   customerName   String
   contactNumber  String
-  deviceType     String
-  deviceModel    String
-  problemDesc    String
-  repairCost     Float
-  technicianCost Float
-  profit         Float
-  status         RepairStatus @default(PENDING)
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
+  productName    String
+  totalPrice     Float
+  downPayment    Float
+  remainingAmount Float
+  monthlyAmount  Float
+  dueDate        DateTime
+  status         InstallmentStatus   @default(ACTIVE)
+  payments       InstallmentPayment[]
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
 }
 
-enum RepairStatus {
-  PENDING
-  IN_PROGRESS
+model InstallmentPayment {
+  id             String      @id @default(cuid())
+  installmentId  String
+  installment    Installment @relation(fields: [installmentId], references: [id])
+  amountPaid     Float
+  paymentDate    DateTime    @default(now())
+  note           String?
+}
+
+enum InstallmentStatus {
+  ACTIVE
   COMPLETED
+  OVERDUE
 }

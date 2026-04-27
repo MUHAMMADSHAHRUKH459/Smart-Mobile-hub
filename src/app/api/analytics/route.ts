@@ -10,13 +10,6 @@ interface SaleItem {
   createdAt: Date;
 }
 
-interface RepairItem {
-  repairCost: number;
-  profit: number;
-  status: string;
-  createdAt: Date;
-}
-
 interface ProductItem {
   id: string;
   name: string;
@@ -28,22 +21,18 @@ interface ProductItem {
 
 export async function GET() {
   try {
-    const [sales, repairs, products] = await Promise.all([
+    const [sales, products] = await Promise.all([
       prisma.sale.findMany({ orderBy: { createdAt: "desc" } }),
-      prisma.repair.findMany({ orderBy: { createdAt: "desc" } }),
       prisma.product.findMany(),
     ]);
 
     const typedSales = sales as unknown as SaleItem[];
-    const typedRepairs = repairs as unknown as RepairItem[];
     const typedProducts = products as unknown as ProductItem[];
 
     const totalSalesRevenue = typedSales.reduce((sum: number, s) => sum + s.totalAmount, 0);
     const totalSalesProfit = typedSales.reduce((sum: number, s) => sum + s.profit, 0);
-    const totalRepairRevenue = typedRepairs.reduce((sum: number, r) => sum + r.repairCost, 0);
-    const totalRepairProfit = typedRepairs.reduce((sum: number, r) => sum + r.profit, 0);
-    const totalRevenue = totalSalesRevenue + totalRepairRevenue;
-    const totalProfit = totalSalesProfit + totalRepairProfit;
+    const totalRevenue = totalSalesRevenue;
+    const totalProfit = totalSalesProfit;
 
     const productSales: Record<string, { name: string; quantity: number; revenue: number }> = {};
     typedSales.forEach((s) => {
@@ -83,28 +72,15 @@ export async function GET() {
       (p) => p.quantity <= p.lowStockAlert
     );
 
-    const pendingRepairs = typedRepairs.filter((r) => r.status === "PENDING").length;
-    const completedRepairs = typedRepairs.filter((r) => r.status === "COMPLETED").length;
-    const inProgressRepairs = typedRepairs.filter((r) => r.status === "IN_PROGRESS").length;
-
     return NextResponse.json({
       totalRevenue,
       totalProfit,
       totalSalesRevenue,
-      totalRepairRevenue,
       totalSalesProfit,
-      totalRepairProfit,
       topProducts,
       monthlySales: Object.values(monthlySales),
       lowStockProducts,
-      repairStats: {
-        pending: pendingRepairs,
-        completed: completedRepairs,
-        inProgress: inProgressRepairs,
-        total: repairs.length,
-      },
       totalSales: sales.length,
-      totalRepairs: repairs.length,
     });
   } catch (error) {
     console.error("Error fetching analytics:", error);

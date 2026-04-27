@@ -13,10 +13,10 @@ interface Message {
 const suggestions = [
   "Is month kitna profit hua?",
   "Konsa product sabse zyada bika?",
-  "Kitne repairs pending hain?",
   "Low stock products kaun se hain?",
   "Total revenue kitni hai?",
-  "Repair profit kitna hai?",
+  "Recent sales dikhao",
+  "Installments ka status kya hai?",
 ];
 
 export default function AiChatPage() {
@@ -24,7 +24,7 @@ export default function AiChatPage() {
     {
       role: "assistant",
       content:
-        "Assalam o Alaikum! Main aapka AI Business Assistant hoon. Aap mujhse apni sales, inventory, repairs, aur profits ke baare mein kuch bhi pooch sakte hain. Main aapki business data ke mutabiq jawab dunga! 😊",
+        "Assalam o Alaikum! Main aapka AI Business Assistant hoon. Aap mujhse apni sales, inventory, aur profits ke baare mein kuch bhi pooch sakte hain. Main aapki business data ke mutabiq jawab dunga! 😊",
       timestamp: new Date(),
     },
   ]);
@@ -91,38 +91,36 @@ export default function AiChatPage() {
   return (
     <MainLayout title="AI Assistant">
       <div className="space-y-4">
+
         {/* Header */}
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
-            <Sparkles className="w-5 h-5 text-white" />
-          </div>
+        <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-slate-800 dark:text-white">
-              AI Assistant
-            </h1>
-            <p className="text-sm text-slate-400">
+            <h1 className="text-2xl font-bold text-slate-800">AI Assistant</h1>
+            <p className="text-sm text-slate-400 mt-0.5">
               Powered by Google Gemini — Ask anything about your business
             </p>
+          </div>
+          <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-indigo-700 rounded-xl flex items-center justify-center shadow-md shadow-indigo-200">
+            <Sparkles className="w-5 h-5 text-white" />
           </div>
         </div>
 
         {/* Chat Container */}
-        <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 flex flex-col h-[600px]">
+        <div className="bg-white rounded-2xl border border-indigo-100 flex flex-col h-[600px] shadow-sm">
+
           {/* Messages */}
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
             {messages.map((message, index) => (
               <div
                 key={index}
-                className={`flex items-start gap-3 ${
-                  message.role === "user" ? "flex-row-reverse" : ""
-                }`}
+                className={`flex items-start gap-3 ${message.role === "user" ? "flex-row-reverse" : ""}`}
               >
                 {/* Avatar */}
                 <div
-                  className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                  className={`w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 ${
                     message.role === "user"
-                      ? "bg-blue-500"
-                      : "bg-gradient-to-br from-blue-500 to-purple-600"
+                      ? "bg-indigo-600"
+                      : "bg-gradient-to-br from-indigo-500 to-indigo-700"
                   }`}
                 >
                   {message.role === "user" ? (
@@ -136,20 +134,16 @@ export default function AiChatPage() {
                 <div
                   className={`max-w-[75%] rounded-2xl px-4 py-3 ${
                     message.role === "user"
-                      ? "bg-blue-600 text-white rounded-tr-sm"
-                      : "bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-white rounded-tl-sm"
+                      ? "bg-indigo-600 text-white rounded-tr-sm"
+                      : "bg-indigo-50 border border-indigo-100 text-slate-800 rounded-tl-sm"
                   }`}
                 >
                   <p className="text-sm leading-relaxed whitespace-pre-wrap">
                     {message.content}
                   </p>
-                  <p
-                    className={`text-xs mt-1 ${
-                      message.role === "user"
-                        ? "text-blue-200"
-                        : "text-slate-400"
-                    }`}
-                  >
+                  <p className={`text-xs mt-1 ${
+                    message.role === "user" ? "text-indigo-200" : "text-slate-400"
+                  }`}>
                     {message.timestamp.toLocaleTimeString("en-PK", {
                       hour: "2-digit",
                       minute: "2-digit",
@@ -159,17 +153,17 @@ export default function AiChatPage() {
               </div>
             ))}
 
-            {/* Loading */}
+            {/* Loading dots */}
             {loading && (
               <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-700 flex items-center justify-center">
                   <Bot className="w-4 h-4 text-white" />
                 </div>
-                <div className="bg-slate-100 dark:bg-slate-700 rounded-2xl rounded-tl-sm px-4 py-3">
+                <div className="bg-indigo-50 border border-indigo-100 rounded-2xl rounded-tl-sm px-4 py-3">
                   <div className="flex gap-1">
-                    <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-                    <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
-                    <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+                    <div className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+                    <div className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+                    <div className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
                   </div>
                 </div>
               </div>
@@ -177,16 +171,16 @@ export default function AiChatPage() {
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Suggestions */}
+          {/* Suggestions — only on first message */}
           {messages.length === 1 && (
-            <div className="px-4 pb-2">
+            <div className="px-4 pb-3">
               <p className="text-xs text-slate-400 mb-2">Suggested questions:</p>
               <div className="flex flex-wrap gap-2">
                 {suggestions.map((suggestion) => (
                   <button
                     key={suggestion}
                     onClick={() => sendMessage(suggestion)}
-                    className="text-xs px-3 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors border border-blue-200 dark:border-blue-800"
+                    className="text-xs px-3 py-1.5 bg-indigo-50 text-indigo-600 rounded-full hover:bg-indigo-100 transition-colors border border-indigo-200"
                   >
                     {suggestion}
                   </button>
@@ -196,7 +190,7 @@ export default function AiChatPage() {
           )}
 
           {/* Input */}
-          <div className="p-4 border-t border-slate-200 dark:border-slate-700">
+          <div className="p-4 border-t border-indigo-50">
             <div className="flex items-center gap-3">
               <input
                 type="text"
@@ -205,12 +199,12 @@ export default function AiChatPage() {
                 onKeyDown={handleKeyDown}
                 placeholder="Apna sawal likho... (English, Urdu, ya Roman Urdu)"
                 disabled={loading}
-                className="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 text-slate-800 dark:text-white text-sm outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+                className="flex-1 px-4 py-2.5 rounded-xl border border-indigo-100 bg-indigo-50/50 text-slate-800 text-sm outline-none focus:ring-2 focus:ring-indigo-400 disabled:opacity-50"
               />
               <button
                 onClick={() => sendMessage()}
                 disabled={loading || !input.trim()}
-                className="w-10 h-10 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl flex items-center justify-center transition-colors"
+                className="w-10 h-10 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl flex items-center justify-center transition-colors shadow-md shadow-indigo-200"
               >
                 <Send className="w-4 h-4 text-white" />
               </button>
